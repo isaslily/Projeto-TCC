@@ -3,7 +3,7 @@
 
 ---
 
-## ⚡ Instalação e Execução
+## Instalação e Execução
 
 ```bash
 # 1. Instalar dependências
@@ -18,7 +18,7 @@ http://localhost:5000
 
 ---
 
-## 📋 Funcionalidades
+## Funcionalidades
 
 | Funcionalidade | Endpoint |
 |----|---------------|----------|
@@ -30,7 +30,7 @@ http://localhost:5000
 
 ---
 
-## 🗄️ Banco de Dados
+## Banco de Dados
 
 Arquivo gerado automaticamente: `taskflow.db`
 
