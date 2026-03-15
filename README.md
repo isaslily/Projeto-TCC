@@ -20,13 +20,12 @@ http://localhost:5000
 
 ## Funcionalidades
 
-| Funcionalidade | Endpoint |
-|----|---------------|----------|
-| Cadastro de Projetos e Tarefas (CREATE) | `POST /api/projects` / `POST /api/tasks` |
-| Listagem com Filtros (READ) | `GET /api/tasks?status=&project_id=&priority=` |
-| Atualização de Status/Dados (UPDATE) | `PUT /api/tasks/:id` / `PATCH /api/tasks/:id/status` |
-| Exclusão de Tarefas e Projetos (DELETE) | `DELETE /api/tasks/:id` / `DELETE /api/projects/:id` |
-| Dashboard com métricas em tempo real | `GET /api/dashboard` |
+  | Funcionalidade | Endpoint |  
+  | Cadastro de Projetos e Tarefas (CREATE) | `POST /api/projects` / `POST /api/tasks` |  
+  | Listagem com Filtros (READ) | `GET /api/tasks?status=&project_id=&priority=` |  
+  | Atualização de Status/Dados (UPDATE) | `PUT /api/tasks/:id` / `PATCH /api/tasks/:id/status` |  
+  | Exclusão de Tarefas e Projetos (DELETE) | `DELETE /api/tasks/:id` / `DELETE /api/projects/:id` |  
+  | Dashboard com métricas em tempo real | `GET /api/dashboard` |  
 
 ---
 
