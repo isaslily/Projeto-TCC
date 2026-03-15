@@ -36,9 +36,3 @@ Arquivo gerado automaticamente: `taskflow.db`
 **Tabelas:**
 - `projects` — id, name, description, color, created_at
 - `tasks` — id, project_id, title, description, priority, status, due_date, created_at, updated_at
-
-**Ver dados no app:** aba "Banco de Dados" no menu lateral
-4. **[2:30]** AC3 — Editar tarefa / mover status no Kanban
-5. **[3:30]** AC4 — Excluir tarefa e projeto
-6. **[4:00]** Prova — Dashboard: métricas + atividade recente
-7. **[4:30]** Aba "Banco de Dados": mostrar SELECT * em tempo real
