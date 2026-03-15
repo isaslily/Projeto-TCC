@@ -1,0 +1,45 @@
+# ── Banco de Dados 
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Python 
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+
+# ── Ambiente Virtual 
+venv/
+env/
+.env
+.venv
+ENV/
+
+# ── Variáveis de Ambiente 
+.env
+.env.local
+.env.production
+
+# ── Sistema Operacional 
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDEs e Editores 
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ── Logs 
+*.log
+logs/

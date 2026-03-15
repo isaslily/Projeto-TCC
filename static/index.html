@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planeja+ — Gestão de Projetos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #13141a;
+    --surface2: #1c1e27;
+    --border: #2a2d3a;
+    --accent: #7c6dfa;
+    --accent2: #4ade80;
+    --accent3: #fb923c;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --danger: #f43f5e;
+    --todo: #6b7280;
+    --inprog: #7c6dfa;
+    --done: #4ade80;
+    --high: #f43f5e;
+    --medium: #fb923c;
+    --low: #4ade80;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+  .main { margin-left: 240px; flex: 1; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .logo { padding: 28px 24px 20px; border-bottom: 1px solid var(--border); }
+  .logo h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .logo small { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; font-weight: 400; }
+  .nav { padding: 16px 12px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: var(--muted); transition: all .2s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(124,109,250,.15); color: var(--accent); }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .nav-section { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); padding: 16px 12px 6px; }
+
+  /* ── HEADER ── */
+  .topbar { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface); position: sticky; top: 0; z-index: 50; }
+  .topbar h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all .2s; font-family: 'DM Sans', sans-serif; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6d5ef0; transform: translateY(-1px); }
+  .btn-danger { background: rgba(244,63,94,.15); color: var(--danger); border: 1px solid rgba(244,63,94,.3); }
+  .btn-danger:hover { background: rgba(244,63,94,.25); }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ── CONTENT ── */
+  .content { padding: 28px 32px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.c1::before { background: var(--accent); }
+  .stat-card.c2::before { background: var(--accent2); }
+  .stat-card.c3::before { background: var(--accent3); }
+  .stat-card.c4::before { background: var(--danger); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── KANBAN ── */
+  .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .kanban-col { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-height: 400px; }
+  .col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .col-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .col-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .col-count { background: var(--surface2); border-radius: 20px; padding: 2px 8px; font-size: 11px; color: var(--muted); }
+  .task-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; cursor: pointer; transition: all .2s; position: relative; }
+  .task-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+  .task-title { font-size: 13px; font-weight: 500; margin-bottom: 8px; line-height: 1.4; }
+  .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-high { background: rgba(244,63,94,.15); color: var(--high); }
+  .badge-medium { background: rgba(251,146,60,.15); color: var(--medium); }
+  .badge-low { background: rgba(74,222,128,.15); color: var(--low); }
+  .project-tag { font-size: 11px; color: var(--muted); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); }
+  .task-actions { display: flex; gap: 4px; margin-top: 10px; }
+  .task-btn { padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); transition: all .2s; font-family: 'DM Sans', sans-serif; }
+  .task-btn:hover { color: var(--text); border-color: var(--muted); }
+  .task-btn.done-btn:hover { color: var(--done); border-color: var(--done); }
+  .task-btn.del-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+  /* ── MODAL ── */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 480px; max-width: 95vw; animation: slideUp .25s ease; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+  input, select, textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px; font-family: 'DM Sans', sans-serif; transition: border-color .2s; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ── PROJECTS LIST ── */
+  .projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .project-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all .2s; position: relative; overflow: hidden; }
+  .project-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,.3); }
+  .project-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+  .project-color-bar { width: 3px; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 12px 0 0 12px; }
+  .project-name { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .project-desc { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .project-progress { margin-top: 12px; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  .progress-fill { height: 100%; border-radius: 2px; transition: width .5s; }
+  .progress-label { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+
+  /* ── DB VIEWER ── */
+  .db-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .db-tab { padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--muted); transition: all .2s; }
+  .db-tab.active { background: rgba(124,109,250,.15); color: var(--accent); border-color: var(--accent); }
+  .db-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--surface2); padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .sql-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; font-family: 'Courier New', monospace; font-size: 13px; color: #a5b4fc; margin-bottom: 16px; line-height: 1.7; white-space: pre-wrap; }
+  .sql-keyword { color: #fb923c; }
+  .sql-table { color: #4ade80; }
+  .sql-comment { color: var(--muted); }
+
+  /* ── DASHBOARD ── */
+  .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .activity-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .activity-info { flex: 1; }
+  .activity-title { font-size: 13px; font-weight: 500; }
+  .activity-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .activity-time { font-size: 11px; color: var(--muted); }
+  .priority-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .priority-label { font-size: 13px; width: 60px; }
+  .priority-bar-wrap { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .priority-bar { height: 100%; border-radius: 4px; }
+  .priority-count { font-size: 12px; color: var(--muted); width: 24px; text-align: right; }
+
+  /* ── TOAST ── */
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; font-size: 13px; transform: translateX(120%); transition: transform .3s; z-index: 999; max-width: 320px; }
+  #toast.show { transform: translateX(0); }
+  #toast.success { border-color: var(--accent2); color: var(--accent2); }
+  #toast.error { border-color: var(--danger); color: var(--danger); }
+
+  /* ── EMPTY ── */
+  .empty { text-align: center; padding: 48px; color: var(--muted); }
+  .empty svg { width: 48px; height: 48px; margin: 0 auto 12px; opacity: .3; display: block; }
+  .empty p { font-size: 14px; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+  .filter-bar select { width: auto; padding: 8px 12px; font-size: 13px; }
+  .filter-label { font-size: 12px; color: var(--muted); }
+
+  select option { background: var(--surface2); }
+  .dot-todo { background: var(--todo); }
+  .dot-inprog { background: var(--inprog); }
+  .dot-done { background: var(--done); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>Planeja<span>+</span></h1>
+      <small>Gestão de Projetos</small>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Menu</div>
+      <button class="nav-item active" onclick="navigate('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="navigate('projects')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 7l9 6 9-6"/></svg>
+        Projetos
+      </button>
+      <button class="nav-item" onclick="navigate('tasks')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Tarefas (Board)
+      </button>
+      <button class="nav-item" onclick="navigate('db')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Banco de Dados
+      </button>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="topbar"><h2>📊 Dashboard</h2><button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Atualizar</button></div>
+      <div class="content">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card c1"><div class="stat-label">Total de Tarefas</div><div class="stat-value" id="s-total">—</div></div>
+          <div class="stat-card c2"><div class="stat-label">Concluídas</div><div class="stat-value" id="s-done">—</div><div class="stat-sub" id="s-rate">—</div></div>
+          <div class="stat-card c3"><div class="stat-label">Em Progresso</div><div class="stat-value" id="s-prog">—</div></div>
+          <div class="stat-card c4"><div class="stat-label">Projetos Ativos</div><div class="stat-value" id="s-proj">—</div></div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-title">Atividade Recente</div>
+            <div id="recent-activity"></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">Por Prioridade</div>
+              <div id="priority-chart"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Por Projeto</div>
+              <div id="project-chart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <div id="page-projects" class="page">
+      <div class="topbar"><h2>📁 Projetos</h2><button class="btn btn-primary" onclick="openModal('project')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo Projeto</button></div>
+      <div class="content">
+        <div class="projects-grid" id="projects-grid"></div>
+      </div>
+    </div>
+
+    <!-- TASKS BOARD -->
+    <div id="page-tasks" class="page">
+      <div class="topbar"><h2>📋 Board de Tarefas</h2><button class="btn btn-primary" onclick="openModal('task')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova Tarefa</button></div>
+      <div class="content">
+        <div class="filter-bar">
+          <span class="filter-label">Filtrar:</span>
+          <select id="filter-project" onchange="loadTasks()"><option value="">Todos os Projetos</option></select>
+          <select id="filter-priority" onchange="loadTasks()"><option value="">Todas Prioridades</option><option value="high">Alta</option><option value="medium">Média</option><option value="low">Baixa</option></select>
+        </div>
+        <div class="kanban">
+          <div class="kanban-col">
+            <div class="col-header"><span class="col-title"><span class="col-dot" style="background:var(--todo)"></span>A Fazer</span><span class="col-count" id="count-todo">0</span></div>
+            <div id="col-todo"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="col-header"><span class="col-title"><span class="col-dot" style="background:var(--inprog)"></span>Em Progresso</span><span class="col-count" id="count-inprog">0</span></div>
+            <div id="col-inprog"></div>
+          </div>
+          <div class="kanban-col">
+            <div class="col-header"><span class="col-title"><span class="col-dot" style="background:var(--done)"></span>Concluído</span><span class="col-count" id="count-done">0</span></div>
+            <div id="col-done"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DB VIEWER -->
+    <div id="page-db" class="page">
+      <div class="topbar"><h2>🗄️ Banco de Dados — SQLite</h2><button class="btn btn-ghost btn-sm" onclick="loadDB()">↻ Recarregar</button></div>
+      <div class="content">
+        <div class="sql-box" id="sql-display">
+<span class="sql-comment">-- Consultas executadas em tempo real</span>
+<span class="sql-keyword">SELECT</span> * <span class="sql-keyword">FROM</span> <span class="sql-table">projects</span>;
+<span class="sql-keyword">SELECT</span> * <span class="sql-keyword">FROM</span> <span class="sql-table">tasks</span>;</div>
+        <div class="db-tabs">
+          <button class="db-tab active" onclick="showDBTab('projects')">📁 projects</button>
+          <button class="db-tab" onclick="showDBTab('tasks')">📋 tasks</button>
+        </div>
+        <div class="db-table-wrap">
+          <div id="db-content"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL PROJETO -->
+<div class="overlay" id="modal-project">
+  <div class="modal">
+    <div class="modal-title">➕ Novo Projeto <span style="font-size:12px;color:var(--muted);font-family:DM Sans">(AC1 — CREATE)</span></div>
+    <div class="form-group"><label>Nome do Projeto *</label><input id="proj-name" placeholder="Ex: App Mobile"></div>
+    <div class="form-group"><label>Descrição</label><textarea id="proj-desc" placeholder="Descreva o projeto..."></textarea></div>
+    <div class="form-group"><label>Cor</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="color-picker">
+        <div class="color-opt" style="width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid transparent" onclick="selectColor(this,'#6366f1')" data-color="#6366f1" style="background:#6366f1"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('project')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createProject()">Criar Projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAREFA -->
+<div class="overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-title" id="modal-task-title">➕ Nova Tarefa <span style="font-size:12px;color:var(--muted);font-family:DM Sans">(AC1 — CREATE)</span></div>
+    <input type="hidden" id="task-edit-id">
+    <div class="form-group"><label>Título *</label><input id="task-title" placeholder="Ex: Criar wireframes"></div>
+    <div class="form-group"><label>Descrição</label><textarea id="task-desc" placeholder="Detalhes da tarefa..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Projeto *</label><select id="task-project"></select></div>
+      <div class="form-group"><label>Prioridade</label>
+        <select id="task-priority"><option value="low">Baixa</option><option value="medium" selected>Média</option><option value="high">Alta</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Status</label>
+        <select id="task-status"><option value="todo">A Fazer</option><option value="in_progress">Em Progresso</option><option value="done">Concluído</option></select>
+      </div>
+      <div class="form-group"><label>Data de Entrega</label><input type="date" id="task-due"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('task')">Cancelar</button>
+      <button class="btn btn-primary" id="task-save-btn" onclick="saveTask()">Criar Tarefa</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:5000/api';
+let allTasks = [], allProjects = [], dbData = {}, currentDBTab = 'projects';
+const COLORS = ['#6366f1','#10b981','#f59e0b','#f43f5e','#3b82f6','#8b5cf6','#ec4899'];
+let selectedColor = COLORS[0];
+
+// ── NAVIGATION ──────────────────────────────────────────────
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'projects') loadProjects();
+  if (page === 'tasks') { loadProjects(); loadTasks(); }
+  if (page === 'db') loadDB();
+}
+
+// ── TOAST ──────────────────────────────────────────────────
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 3000);
+}
+
+// ── MODAL ──────────────────────────────────────────────────
+function openModal(type) {
+  if (type === 'task') {
+    document.getElementById('task-edit-id').value = '';
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-desc').value = '';
+    document.getElementById('task-priority').value = 'medium';
+    document.getElementById('task-status').value = 'todo';
+    document.getElementById('task-due').value = '';
+    document.getElementById('modal-task-title').innerHTML = '➕ Nova Tarefa <span style="font-size:12px;color:var(--muted);font-family:DM Sans">(AC1 — CREATE)</span>';
+    document.getElementById('task-save-btn').textContent = 'Criar Tarefa';
+    populateProjectSelect();
+  }
+  if (type === 'project') buildColorPicker();
+  document.getElementById('modal-' + type).classList.add('open');
+}
+function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+
+function buildColorPicker() {
+  const cp = document.getElementById('color-picker');
+  cp.innerHTML = COLORS.map(c => `<div onclick="selectColor(this,'${c}')" style="width:32px;height:32px;border-radius:8px;cursor:pointer;background:${c};border:2px solid ${c===selectedColor?'white':'transparent'}" title="${c}"></div>`).join('');
+}
+function selectColor(el, color) {
+  selectedColor = color;
+  document.querySelectorAll('#color-picker div').forEach(d => d.style.borderColor = 'transparent');
+  el.style.borderColor = 'white';
+}
+
+function populateProjectSelect(target='task-project') {
+  const sel = document.getElementById(target);
+  sel.innerHTML = allProjects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+// ── AC1: CREATE ─────────────────────────────────────────────
+async function createProject() {
+  const name = document.getElementById('proj-name').value.trim();
+  if (!name) return toast('Nome obrigatório!', 'error');
+  const res = await fetch(`${API}/projects`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name, description: document.getElementById('proj-desc').value, color: selectedColor })
+  });
+  if (res.ok) {
+    toast('✅ Projeto criado com sucesso!');
+    closeModal('project');
+    loadProjects();
+    updateFilterSelect();
+  } else toast('Erro ao criar projeto', 'error');
+}
+
+async function saveTask() {
+  const id = document.getElementById('task-edit-id').value;
+  const data = {
+    title: document.getElementById('task-title').value.trim(),
+    description: document.getElementById('task-desc').value,
+    project_id: parseInt(document.getElementById('task-project').value),
+    priority: document.getElementById('task-priority').value,
+    status: document.getElementById('task-status').value,
+    due_date: document.getElementById('task-due').value || null
+  };
+  if (!data.title) return toast('Título obrigatório!', 'error');
+  const url = id ? `${API}/tasks/${id}` : `${API}/tasks`;
+  const method = id ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+  if (res.ok) {
+    toast(id ? '✏️ Tarefa atualizada!' : '✅ Tarefa criada!');
+    closeModal('task'); loadTasks();
+  } else toast('Erro ao salvar tarefa', 'error');
+}
+
+// ── AC2: READ ───────────────────────────────────────────────
+async function loadProjects() {
+  const res = await fetch(`${API}/projects`);
+  allProjects = await res.json();
+  const grid = document.getElementById('projects-grid');
+  if (!grid) return;
+  grid.innerHTML = allProjects.map(p => {
+    const pct = p.task_count > 0 ? Math.round(p.done_count / p.task_count * 100) : 0;
+    return `<div class="project-card" onclick="">
+      <div class="project-color-bar" style="background:${p.color}"></div>
+      <div style="padding-left:8px">
+        <div class="project-name">${p.name}</div>
+        <div class="project-desc">${p.description || 'Sem descrição'}</div>
+        <div style="display:flex;gap:8px;font-size:12px;color:var(--muted);margin-bottom:8px">
+          <span>📋 ${p.task_count} tarefas</span>
+          <span>✅ ${p.done_count} concluídas</span>
+        </div>
+        <div class="project-progress">
+          <div class="progress-label"><span>Progresso</span><span>${pct}%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${p.color}"></div></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="filterByProject(${p.id})">Ver Tarefas</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id},event)">Excluir</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty"><p>Nenhum projeto cadastrado</p></div>';
+}
+
+async function loadTasks() {
+  const proj = document.getElementById('filter-project')?.value || '';
+  const prio = document.getElementById('filter-priority')?.value || '';
+  let url = `${API}/tasks?`;
+  if (proj) url += `project_id=${proj}&`;
+  if (prio) url += `priority=${prio}`;
+  const res = await fetch(url);
+  allTasks = await res.json();
+  renderKanban(allTasks);
+  updateFilterSelect();
+}
+
+function renderKanban(tasks) {
+  const cols = { todo: [], in_progress: [], done: [] };
+  tasks.forEach(t => { if (cols[t.status]) cols[t.status].push(t); });
+  document.getElementById('count-todo').textContent = cols.todo.length;
+  document.getElementById('count-inprog').textContent = cols.in_progress.length;
+  document.getElementById('count-done').textContent = cols.done.length;
+  const renderCol = (list) => list.map(t => `
+    <div class="task-card">
+      <div class="task-title">${t.title}</div>
+      <div class="task-meta">
+        <span class="badge badge-${t.priority}">${t.priority==='high'?'Alta':t.priority==='medium'?'Média':'Baixa'}</span>
+        <span class="project-tag" style="border-color:${t.project_color}30;color:${t.project_color}">${t.project_name}</span>
+        ${t.due_date ? `<span style="font-size:11px;color:var(--muted)">📅 ${t.due_date}</span>` : ''}
+      </div>
+      <div class="task-actions">
+        <button class="task-btn" onclick="editTask(${t.id})">✏️ Editar</button>
+        ${t.status !== 'done' ? `<button class="task-btn done-btn" onclick="quickStatus(${t.id},'${t.status === 'todo' ? 'in_progress' : 'done'}')">→ ${t.status === 'todo' ? 'Iniciar' : 'Concluir'}</button>` : ''}
+        <button class="task-btn del-btn" onclick="deleteTask(${t.id})">🗑️</button>
+      </div>
+    </div>`).join('') || `<div class="empty"><p style="font-size:12px">Sem tarefas</p></div>`;
+  document.getElementById('col-todo').innerHTML = renderCol(cols.todo);
+  document.getElementById('col-inprog').innerHTML = renderCol(cols.in_progress);
+  document.getElementById('col-done').innerHTML = renderCol(cols.done);
+}
+
+function updateFilterSelect() {
+  const sel = document.getElementById('filter-project');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos os Projetos</option>' + allProjects.map(p => `<option value="${p.id}" ${cur==p.id?'selected':''}>${p.name}</option>`).join('');
+}
+
+function filterByProject(id) {
+  // Troca para a página de tarefas manualmente (sem depender do evento)
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-tasks').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[2].classList.add('active');
+  // Carrega projetos, aplica o filtro e renderiza o board
+  loadProjects().then(() => {
+    document.getElementById('filter-project').value = id;
+    loadTasks();
+  });
+}
+
+// ── AC3: UPDATE ──────────────────────────────────────────────
+async function quickStatus(id, status) {
+  const res = await fetch(`${API}/tasks/${id}/status`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ status })
+  });
+  if (res.ok) { toast('✅ Status atualizado!'); loadTasks(); loadDashboard(); }
+}
+
+async function editTask(id) {
+  const task = allTasks.find(t => t.id === id);
+  if (!task) return;
+  await loadProjects();
+  populateProjectSelect();
+  document.getElementById('task-edit-id').value = id;
+  document.getElementById('task-title').value = task.title;
+  document.getElementById('task-desc').value = task.description || '';
+  document.getElementById('task-project').value = task.project_id;
+  document.getElementById('task-priority').value = task.priority;
+  document.getElementById('task-status').value = task.status;
+  document.getElementById('task-due').value = task.due_date || '';
+  document.getElementById('modal-task-title').innerHTML = '✏️ Editar Tarefa <span style="font-size:12px;color:var(--muted);font-family:DM Sans">(AC3 — UPDATE)</span>';
+  document.getElementById('task-save-btn').textContent = 'Salvar Alterações';
+  document.getElementById('modal-task').classList.add('open');
+}
+
+// ── AC4: DELETE ──────────────────────────────────────────────
+async function deleteTask(id) {
+  if (!confirm('Excluir esta tarefa?')) return;
+  const res = await fetch(`${API}/tasks/${id}`, { method:'DELETE' });
+  if (res.ok) { toast('🗑️ Tarefa excluída!'); loadTasks(); loadDashboard(); }
+}
+
+async function deleteProject(id, e) {
+  e.stopPropagation();
+  if (!confirm('Excluir projeto e todas as tarefas?')) return;
+  const res = await fetch(`${API}/projects/${id}`, { method:'DELETE' });
+  if (res.ok) { toast('🗑️ Projeto excluído!'); loadProjects(); }
+}
+
+// ── PROVA: DASHBOARD ─────────────────────────────────────────
+async function loadDashboard() {
+  const res = await fetch(`${API}/dashboard`);
+  const d = await res.json();
+  document.getElementById('s-total').textContent = d.totals.tasks;
+  document.getElementById('s-done').textContent = d.totals.done;
+  document.getElementById('s-rate').textContent = `${d.completion_rate}% de conclusão`;
+  document.getElementById('s-prog').textContent = d.totals.in_progress;
+  document.getElementById('s-proj').textContent = d.totals.projects;
+
+  const statusColors = { todo: '#6b7280', in_progress: '#7c6dfa', done: '#4ade80' };
+  const statusLabels = { todo: 'A Fazer', in_progress: 'Em Progresso', done: 'Concluído' };
+  document.getElementById('recent-activity').innerHTML = d.recent_activity.length
+    ? d.recent_activity.map(a => `
+      <div class="activity-item">
+        <div class="activity-dot" style="background:${statusColors[a.status]||'#888'}"></div>
+        <div class="activity-info">
+          <div class="activity-title">${a.title}</div>
+          <div class="activity-sub">${a.project} · ${statusLabels[a.status]||a.status}</div>
+        </div>
+        <div class="activity-time">${a.updated_at?.substring(0,10)||''}</div>
+      </div>`).join('')
+    : '<div class="empty"><p>Nenhuma atividade</p></div>';
+
+  const maxP = Math.max(...d.by_priority.map(p=>p.count), 1);
+  const prioColors = { high:'var(--high)', medium:'var(--medium)', low:'var(--low)' };
+  const prioLabels = { high:'Alta', medium:'Média', low:'Baixa' };
+  document.getElementById('priority-chart').innerHTML = d.by_priority.map(p => `
+    <div class="priority-row">
+      <span class="priority-label">${prioLabels[p.priority]||p.priority}</span>
+      <div class="priority-bar-wrap"><div class="priority-bar" style="width:${p.count/maxP*100}%;background:${prioColors[p.priority]||'#888'}"></div></div>
+      <span class="priority-count">${p.count}</span>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">Sem dados</p>';
+
+  document.getElementById('project-chart').innerHTML = d.by_project.map(p => {
+    const pct = p.total > 0 ? Math.round(p.done/p.total*100) : 0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span>${p.name}</span><span style="color:var(--muted)">${pct}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${p.color}"></div></div>
+    </div>`;
+  }).join('') || '<p style="color:var(--muted);font-size:13px">Sem dados</p>';
+}
+
+// ── DB VIEWER ────────────────────────────────────────────────
+async function loadDB() {
+  const res = await fetch(`${API}/db/tables`);
+  dbData = await res.json();
+  showDBTab(currentDBTab);
+}
+
+function showDBTab(tab) {
+  currentDBTab = tab;
+  document.querySelectorAll('.db-tab').forEach(t => t.classList.remove('active'));
+  event?.currentTarget?.classList.add('active');
+  document.querySelectorAll('.db-tab').forEach(t => { if (t.textContent.includes(tab)) t.classList.add('active'); });
+  const data = dbData[tab] || [];
+  if (!data.length) { document.getElementById('db-content').innerHTML = '<div class="empty"><p>Tabela vazia</p></div>'; return; }
+  const cols = Object.keys(data[0]);
+  document.getElementById('sql-display').innerHTML = `<span class="sql-comment">-- Resultado da consulta em tempo real</span>\n<span class="sql-keyword">SELECT</span> * <span class="sql-keyword">FROM</span> <span class="sql-table">${tab}</span> <span class="sql-keyword">ORDER BY</span> id;`;
+  document.getElementById('db-content').innerHTML = `
+    <table>
+      <thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${data.map(row => `<tr>${cols.map(c => `<td>${row[c] ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>`;
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+(async () => {
+  await loadProjects();
+  await loadDashboard();
+  updateFilterSelect();
+})();
+</script>
+</body>
+</html>
