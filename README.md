@@ -31,7 +31,7 @@ http://localhost:5000
 
 ## Banco de Dados
 
-Arquivo gerado automaticamente: `taskflow.db`
+Atenção: os dados existem apenas enquanto o servidor estiver rodando. Ao reiniciar, os dados de exemplo são recriados automaticamente.
 
 **Tabelas:**
 - `projects` — id, name, description, color, created_at
