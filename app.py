@@ -7,11 +7,6 @@ from datetime import datetime
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
-# ── BANCO EM MEMÓRIA ─────────────────────────────────────────
-# check_same_thread=False permite que Flask use a mesma conexão
-# em diferentes threads de requisição.
-# ATENÇÃO: os dados existem apenas enquanto o servidor estiver rodando.
-# Ao reiniciar o app, tudo é apagado e os dados de seed são recriados.
 _mem_conn = sqlite3.connect(':memory:', check_same_thread=False)
 _mem_conn.row_factory = sqlite3.Row
 
@@ -63,7 +58,7 @@ def init_db():
                   (3, 'Autenticação OAuth', 'Implementar login com Google/GitHub', 'high', 'in_progress', '2024-12-10'))
     conn.commit()
 
-# ── AC1: CREATE ──────────────────────────────────────────────
+# ── AC1: CREATE 
 @app.route('/api/projects', methods=['POST'])
 def create_project():
     data = request.json
@@ -94,7 +89,7 @@ def create_task():
     task = conn.execute("SELECT t.*, p.name as project_name, p.color as project_color FROM tasks t JOIN projects p ON t.project_id=p.id WHERE t.id=?", (task_id,)).fetchone()
     return jsonify(dict(task)), 201
 
-# ── AC2: READ ────────────────────────────────────────────────
+# ── AC2: READ 
 @app.route('/api/projects', methods=['GET'])
 def get_projects():
     conn = get_db()
@@ -124,7 +119,7 @@ def get_tasks():
     tasks = conn.execute(query, params).fetchall()
     return jsonify([dict(t) for t in tasks])
 
-# ── AC3: UPDATE ──────────────────────────────────────────────
+# ── AC3: UPDATE 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
     data = request.json
@@ -150,7 +145,7 @@ def update_task_status(task_id):
         return jsonify({'error': 'Tarefa não encontrada'}), 404
     return jsonify(dict(updated))
 
-# ── AC4: DELETE ──────────────────────────────────────────────
+# ── AC4: DELETE 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
     conn = get_db()
@@ -169,7 +164,7 @@ def delete_project(project_id):
     conn.commit()
     return jsonify({'message': 'Projeto excluído com sucesso'})
 
-# ── PROVA: DASHBOARD ─────────────────────────────────────────
+# ── PROVA: DASHBOARD 
 @app.route('/api/dashboard', methods=['GET'])
 def dashboard():
     conn = get_db()
@@ -199,7 +194,7 @@ def dashboard():
         'recent_activity': [dict(r) for r in recent]
     })
 
-# ── DB VIEWER (para demo) ─────────────────────────────────────
+# ── DB VIEWER (para demo) 
 @app.route('/api/db/tables', methods=['GET'])
 def db_tables():
     conn = get_db()
